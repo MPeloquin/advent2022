@@ -43,29 +43,70 @@ const Rock: Shape = {
     },
 };
 
-const letterToShape: Record<string, Shape> = {
+type Prediction = {
+    shapeAgainst: (shape: Shape) => Shape;
+};
+
+const Win: Prediction = {
+    shapeAgainst(shape) {
+        if (shape === Rock) {
+            return Paper;
+        }
+        if (shape === Paper) {
+            return Scissors;
+        }
+        return Rock;
+    },
+};
+
+const Draw: Prediction = {
+    shapeAgainst(shape) {
+        if (shape === Rock) {
+            return Rock;
+        }
+        if (shape === Paper) {
+            return Paper;
+        }
+        return Scissors;
+    },
+};
+
+const Lose: Prediction = {
+    shapeAgainst(shape) {
+        if (shape === Rock) {
+            return Scissors;
+        }
+        if (shape === Paper) {
+            return Rock;
+        }
+        return Paper;
+    },
+};
+
+const letterToShape: Record<string, Shape | Prediction> = {
     A: Rock,
     B: Paper,
     C: Scissors,
-    X: Rock,
-    Y: Paper,
-    Z: Scissors,
+    X: Lose,
+    Y: Draw,
+    Z: Win,
 };
 
 const parsedData = data
     .split('\r\n')
     .filter((x) => x)
     .map((x) =>
-        x.split(' ').map((letter): Shape => {
-            return letterToShape[letter] as Shape;
+        x.split(' ').map((letter) => {
+            return letterToShape[letter];
         }),
-    );
+    ) as unknown as [Shape, Prediction][];
 
 let totalPoints = 0;
 
-parsedData.forEach((round) => {
-    totalPoints += round[1].points;
-    totalPoints += round[1].pointsAgainst(round[0]);
+parsedData.forEach(([shape, prediction]) => {
+    const shapeToPlay = prediction.shapeAgainst(shape);
+    totalPoints += shapeToPlay.points;
+    totalPoints += shapeToPlay.pointsAgainst(shape);
 });
 
 console.log(totalPoints);
